@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{multirow,rotating}
+\begin{document}
+\begin{table}
+\centering 
+\caption{Comparison} 
+\begin{tabular}{llcc}\hline 
+ &  Methods & Suboptimality & Predictability \\ \hline\multirow{3}{*}{Noisy training } &  Gupta (Parametric)& $9.2\times 10^{-2}$ & $6.3\times 10^{-1}$ \\ 
+ & SAA & $-$ & $-$ \\ 
+ & DRO & $4.0\times 10^{-2}$ & $2.4\times 10^{-1}$ \\ \hline 
+\multirow{3}{*}{Suboptimal training } & Gupta (Parametric)& $3.2\times 10^{-1}$ & $1.3\times 10^{0}$ \\ 
+ & SAA & $8.6\times 10^{-2}$ & $4.7\times 10^{-1}$ \\ 
+ & DRO & $7.9\times 10^{-2}$ & $3.9\times 10^{-1}$ \\ \hline 
+\multirow{4}{*}{Model mismatch } & Gupta (Parametric)& $8.3\times 10^{-1}$ & $2.8\times 10^{0}$ \\ 
+ & Gupta (Semi-Parametric) & $-$ & $3.1\times 10^{0}$ \\ 
+ & SAA & $6.2\times 10^{-1}$ & $2.4\times 10^{0}$ \\ 
+ & DRO & $6.0\times 10^{-1}$ & $2.2\times 10^{0}$ \\ \hline 
+\end{tabular} 
+\end{table}
+
+
+\end{document}
