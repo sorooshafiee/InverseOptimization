@@ -114,7 +114,7 @@ for r = 1 : run_count
     Predictability(:,:,:,r) = tmp2;
 end
 %% Table in Latex
-fileID = fopen('.\tables\table2.tex','w');
+fileID = fopen('.\tables\table_3_4.tex','w');
 
 tmp_sub = mean(Suboptimality,4);
 [~,ind] = min(tmp_sub,[],1);
@@ -219,6 +219,6 @@ end
 fprintf(fileID,'\\end{tabular} \n\\end{table}\n\n\n\\end{document}\n');
 fclose(fileID);
 cd .\tables\
-command = 'pdflatex table2.tex';
+command = 'pdflatex table_3_4.tex';
 [status,cmdout] = system(command);
 cd ..
