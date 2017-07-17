@@ -1,4 +1,4 @@
-function optimal = Steepest_Descent_For_Gupta_Matlab(param,alpha,x_tr,s)
+function optimal = Steepest_Descent_For_Gupta_Matlab(param,alpha,x_tr,s,x_0)
     % Define Variables    
     kernel_ = param.kernel;
     sigma   = param.sigma;
@@ -9,7 +9,11 @@ function optimal = Steepest_Descent_For_Gupta_Matlab(param,alpha,x_tr,s)
     % Initialization
     optimal = struct('x',[]);    
     
-    x = 5*rand(n,N);
+    if nargin == 4
+        x_0 = 5*rand(n,N);
+    end
+    
+    x = x_0;
     count = 0;
     while true
         count = count + 1;
