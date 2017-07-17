@@ -17,7 +17,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #define param       prhs[0]
 #define data        prhs[1]
 #define optimal     plhs[0]
-    
+
     if (nrhs != 2) {
         mexErrMsgTxt("Two input arguments required.");
     } else if (nlhs > 1) {
@@ -34,13 +34,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mxArray *H_in       = mxGetField(param, 0, "H");
     mxArray *W_in       = mxGetField(param, 0, "W");
     mxArray *set_in     = mxGetField(param, 0, "set_theta");
-    
+
     size_t nh           = mxGetM(h_in);
-    
+
     /* Initialization */
     const char *field_names[] = {"theta","objective","diagnosis"};
     optimal = mxCreateStructMatrix(1, 1, 3, field_names); 
-    
+
     IloEnv env;
     try {
         /* Define Additional Fixed Vectors */
@@ -87,7 +87,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         IloNum bigM = 100;
 
         IloModel model(env);
-        
+
         /* Define Decision Variables */  
         IloNumVarArray  theta(env,n,-IloInfinity,IloInfinity);
         NumVarMatrix    y(N);
@@ -100,7 +100,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             b1[i]       = IloBoolVarArray(env,nh);
             b2[i]       = IloBoolVarArray(env,nh);
         } 
-        
+
         /* Declare Constraints */
         for (int i=0; i < N; i++) {
             for (int j=0; j<n; j++)             
@@ -152,13 +152,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             objective += IloScalProd(y[i],y[i]) - 2 * IloScalProd(x[i],y[i]);
         model.add(IloMinimize(env,objective));
         objective.end();
-        
+
         /* Solve the Problem */
         IloCplex cplex(model);
         cplex.setOut(env.getNullStream());
         cplex.setParam(IloCplex::TiLim, 120); 
         cplex.solve();
-        
+
         /* Save the Results */
         mxArray *theta_out = mxCreateDoubleMatrix(n, 1, mxREAL); 
         mxArray *objective_out = mxCreateDoubleMatrix(1, 1, mxREAL); 
@@ -175,11 +175,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
         mxSetField(optimal, 0, "theta", theta_out);
         mxSetField(optimal, 0, "objective", objective_out);         
-        
+
         /* Close CPLEX and Model & Free Memory! */
         cplex.end();
-        model.end();            
-        
+        model.end();
+
         /* Close CPLEX and Model & Free Memory! */
         cplex.end();
         model.end();

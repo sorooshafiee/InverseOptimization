@@ -60,36 +60,36 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         IloNumArray h(env,nh);
         NumMatrix H(nh);
         NumMatrix W(nh);
-		NumMatrix Ctr(m);
+        NumMatrix Ctr(m);
         NumMatrix Htr(m);
         NumMatrix Wtr(n);
-		IloNum alpha;
+        IloNum alpha;
         IloNum delta;
         for (int i=0; i < N; i++) {
-            x[i] 		= IloNumArray(env,n);
-			s[i] 		= IloNumArray(env,m);
+            x[i]        = IloNumArray(env,n);
+            s[i]        = IloNumArray(env,m);
             for (int j=0; j<n; j++){
                 x[i][j] = mxGetPr(x_in)[j+i*n];
             }
-			for (int j=0; j<m; j++){
+            for (int j=0; j<m; j++){
                 s[i][j] = mxGetPr(s_in)[j+i*m];
             }
         }
         for (int i=0; i < ne; i++){
-            epsilon[i]        = mxGetPr(epsilon_in)[i];
+            epsilon[i]  = mxGetPr(epsilon_in)[i];
             if (epsilon[i] == 0)  // It is numerically more stable and efficient to replace 0 with small value   
                 epsilon[i] = 1e-10;
         }
         for (int i=0; i < nd; i++) {
-            C[i] 		= IloNumArray(env,m);
+            C[i]        = IloNumArray(env,m);
             d[i]        = mxGetPr(d_in)[i];
             for (int j=0; j<m; j++){
                 C[i][j] = mxGetPr(C_in)[j*nd+i];
             }
         }
         for (int i=0; i < nh; i++) {
-            H[i] 		= IloNumArray(env,m);
-            W[i] 		= IloNumArray(env,n);
+            H[i]        = IloNumArray(env,m);
+            W[i]        = IloNumArray(env,n);
             h[i]        = mxGetPr(h_in)[i];
             for (int j=0; j<m; j++){
                 H[i][j] = mxGetPr(H_in)[j*nh+i];
@@ -98,73 +98,73 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 W[i][j] = mxGetPr(W_in)[j*nh+i];
             }
         }
-		for (int i=0; i<m; i++){
-			Ctr[i] 		= IloNumArray(env,nd);
-			Htr[i] 		= IloNumArray(env,nh);
-			for (int j=0; j<nd; j++){
-				Ctr[i][j] = mxGetPr(C_in)[i*nd+j];
-			}
-			for (int j=0; j<nh; j++){
-				Htr[i][j] = mxGetPr(H_in)[i*nh+j];
-			}
-		}
-		for (int i=0; i<n; i++){
-			Wtr[i] 		= IloNumArray(env,nh);
-			for (int j=0; j<nh; j++){
-				Wtr[i][j] = mxGetPr(W_in)[i*nh+j];
-			}
-		}
-		alpha = mxGetScalar(alpha_in);
+        for (int i=0; i<m; i++){
+            Ctr[i]      = IloNumArray(env,nd);
+            Htr[i]      = IloNumArray(env,nh);
+            for (int j=0; j<nd; j++){
+                Ctr[i][j] = mxGetPr(C_in)[i*nd+j];
+            }
+            for (int j=0; j<nh; j++){
+                Htr[i][j] = mxGetPr(H_in)[i*nh+j];
+            }
+        }
+        for (int i=0; i<n; i++){
+            Wtr[i]      = IloNumArray(env,nh);
+            for (int j=0; j<nh; j++){
+                Wtr[i][j] = mxGetPr(W_in)[i*nh+j];
+            }
+        }
+        alpha = mxGetScalar(alpha_in);
         if (delta_in != NULL) 
             delta = mxGetScalar(delta_in);
         else 
             delta = 0;
-		if (alpha == 0)
-			alpha = 1 / N;
-		IloNum bigM = 2;
+        if (alpha == 0)
+            alpha = 1 / N;
+        IloNum bigM = 2;
 
         for (int ep = 0; ep < ne; ep++) {
             IloModel model(env);
             
-            /* Define Decision Variables */  
+            /* Define Decision Variables */
             IloNumVar       lambda(env,-IloInfinity,IloInfinity);          
-			IloNumVar       tau(env,-IloInfinity,IloInfinity);
-            IloNumVarArray	r(env,N,-IloInfinity,IloInfinity);
-            IloNumVarArray	theta(env,n,-IloInfinity,IloInfinity);
-            NumVarMatrix	zx_1(N);
-            NumVarMatrix	zx_2(N);
+            IloNumVar       tau(env,-IloInfinity,IloInfinity);
+            IloNumVarArray  r(env,N,-IloInfinity,IloInfinity);
+            IloNumVarArray  theta(env,n,-IloInfinity,IloInfinity);
+            NumVarMatrix    zx_1(N);
+            NumVarMatrix    zx_2(N);
             NumVarMatrix    zs_1(N);
             NumVarMatrix    zs_2(N);
-            NumVarMatrix	gamma(N);
-            NumVarMatrix	mu_1(N);
+            NumVarMatrix    gamma(N);
+            NumVarMatrix    mu_1(N);
             NumVarMatrix    mu_2(N);
-            NumVarMatrix	phi_1(N);           
-            NumVarMatrix	phi_2(N);
+            NumVarMatrix    phi_1(N);
+            NumVarMatrix    phi_2(N);
             for (int i=0; i < N; i++) {
                 zx_1[i]     = IloNumVarArray(env,n,-IloInfinity,IloInfinity);
                 zx_2[i]     = IloNumVarArray(env,n,-IloInfinity,IloInfinity);
-                zs_1[i] 	= IloNumVarArray(env,m,-IloInfinity,IloInfinity);
+                zs_1[i]     = IloNumVarArray(env,m,-IloInfinity,IloInfinity);
                 zs_2[i]     = IloNumVarArray(env,m,-IloInfinity,IloInfinity);
-                gamma[i]	= IloNumVarArray(env,nh,0,IloInfinity);
-                mu_1[i]		= IloNumVarArray(env,nh,0,IloInfinity);
+                gamma[i]    = IloNumVarArray(env,nh,0,IloInfinity);
+                mu_1[i]     = IloNumVarArray(env,nh,0,IloInfinity);
                 mu_2[i]     = IloNumVarArray(env,nh,0,IloInfinity);
-                phi_1[i]	= IloNumVarArray(env,nd,0,IloInfinity);
-                phi_2[i] 	= IloNumVarArray(env,nd,0,IloInfinity);
+                phi_1[i]    = IloNumVarArray(env,nd,0,IloInfinity);
+                phi_2[i]    = IloNumVarArray(env,nd,0,IloInfinity);
             } 
             
             /* Declare Constraints */
             for (int i=0; i<N; i++) {
                 model.add(IloScalProd(zs_1[i],s[i]) - IloScalProd(phi_1[i],d) + IloScalProd(zx_1[i],x[i]) - IloScalProd(mu_1[i],h) - IloScalProd(gamma[i],h) <= r[i] + tau + delta);
-				model.add(IloScalProd(zs_2[i],s[i]) - IloScalProd(phi_2[i],d) + IloScalProd(zx_2[i],x[i]) - IloScalProd(mu_2[i],h) <= r[i]);
+                model.add(IloScalProd(zs_2[i],s[i]) - IloScalProd(phi_2[i],d) + IloScalProd(zx_2[i],x[i]) - IloScalProd(mu_2[i],h) <= r[i]);
                 for (int j=0; j<m; j++){
                     model.add(zs_1[i][j] == IloScalProd(Ctr[j],phi_1[i]) - IloScalProd(Htr[j],mu_1[i]) - IloScalProd(Htr[j],gamma[i]) );
-					model.add(zs_2[i][j] == IloScalProd(Ctr[j],phi_2[i]) - IloScalProd(Htr[j],mu_2[i]) );
+                    model.add(zs_2[i][j] == IloScalProd(Ctr[j],phi_2[i]) - IloScalProd(Htr[j],mu_2[i]) );
                 }
                 for (int j=0; j<n; j++){
                     model.add(zx_1[i][j] == IloScalProd(Wtr[j],mu_1[i]) + IloScalProd(Wtr[j],gamma[i]) );
                     model.add(zx_2[i][j] == IloScalProd(Wtr[j],mu_2[i]));
-					model.add(theta[j]   == IloScalProd(Wtr[j],gamma[i]));					
-                }				
+                    model.add(theta[j]   == IloScalProd(Wtr[j],gamma[i]));
+                }
             }
             if ( pnorm == 1 ) {
                 NumVarMatrix    s1(N);
@@ -218,8 +218,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                     }
                 }
             } 
-                                   
-			/* Constrains corresponds to the set Theta */
+
+            /* Constrains corresponds to the set Theta */
             if (set_in != NULL) {                 
                 mxArray *center_in  = mxGetField(set_in, 0, "center");
                 mxArray *radius_in  = mxGetField(set_in, 0, "radius");
@@ -291,28 +291,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             IloCplex cplex(model);
             cplex.setOut(env.getNullStream());
             cplex.solve();
-			
-			/* Save the Results */
-			mxArray *theta_out       = mxCreateDoubleMatrix(n, 1, mxREAL); 
-			mxArray *objective_out   = mxCreateDoubleMatrix(1, 1, mxREAL); 
-			mxArray *diagnosis_out   = mxCreateDoubleMatrix(1, 1, mxREAL); 
-			double* out_theta        = mxGetPr(theta_out);
-			double* out_objective    = mxGetPr(objective_out);
-			double* out_diagnosis    = mxGetPr(diagnosis_out);
-			*out_diagnosis           = cplex.getStatus();
-			mxSetField(optimal, ep, "diagnosis", diagnosis_out);
-			if (*out_diagnosis != 2){
+
+            /* Save the Results */
+            mxArray *theta_out       = mxCreateDoubleMatrix(n, 1, mxREAL); 
+            mxArray *objective_out   = mxCreateDoubleMatrix(1, 1, mxREAL); 
+            mxArray *diagnosis_out   = mxCreateDoubleMatrix(1, 1, mxREAL); 
+            double* out_theta        = mxGetPr(theta_out);
+            double* out_objective    = mxGetPr(objective_out);
+            double* out_diagnosis    = mxGetPr(diagnosis_out);
+            *out_diagnosis           = cplex.getStatus();
+            mxSetField(optimal, ep, "diagnosis", diagnosis_out);
+            if (*out_diagnosis != 2){
                     continue;
             }
-			*out_objective           = cplex.getObjValue();			
-			for (int i=0; i < n; i++)
-				out_theta[i]         = cplex.getValue(theta[i]);
-			mxSetField(optimal, ep, "theta", theta_out);
-			mxSetField(optimal, ep, "objective", objective_out);			
-			
-			/* Close CPLEX and Model & Free Memory! */
-			cplex.end();
-			model.end();
+            *out_objective           = cplex.getObjValue();
+            for (int i=0; i < n; i++)
+            	out_theta[i]         = cplex.getValue(theta[i]);
+            mxSetField(optimal, ep, "theta", theta_out);
+            mxSetField(optimal, ep, "objective", objective_out);
+            
+            /* Close CPLEX and Model & Free Memory! */
+            cplex.end();
+            model.end();
         }
     }
     catch (IloException& ex) {

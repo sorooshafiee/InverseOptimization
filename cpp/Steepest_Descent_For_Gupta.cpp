@@ -49,7 +49,7 @@ double * Kernel_Function(const mxArray *X1, double *X2, char *kernel_, double le
             for (int k = 0; k < n; k++){
                 double tmp1 = mxGetPr(X1)[k+i*n];
                 double tmp2 = X2[k];
-                acc += tmp1*tmp2;
+                acc += eta*tmp1*tmp2;
             }
             K[i] = pow(acc+1,p);
         }

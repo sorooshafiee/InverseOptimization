@@ -63,7 +63,7 @@ double * Kernel_Function(mxArray *X1, mxArray *X2, char *kernel_, double lengthS
                 for (int k = 0; k < n; k++){
                     double tmp1 = mxGetPr(X1)[k+i*n];
                     double tmp2 = mxGetPr(X2)[k+j*n];
-                    acc += tmp1*tmp2;
+                    acc += eta*tmp1*tmp2;
                 }
                 K[i+j*N1] = pow(acc+1,p);
             }
@@ -119,7 +119,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double status = mxGetString(kernel_in, kernel_, (mwSize)kernel_len);  
     double *sigma = (double*) mxMalloc(sigma_len * sizeof(double));   
     for (int i=0; i<sigma_len; i++)
-        sigma[i] = mxGetPr(sigma_in)[i];    
+        sigma[i] = mxGetPr(sigma_in)[i];
     
     
     /* Initialization */
@@ -130,12 +130,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     try {
         /* Define Additional Fixed Vectors */
         NumMatrix       x(N);
+        NumMatrix       xtr(n);
         NumMatrix       s(N);
         IloNumArray     h(env,nh);
         NumMatrix       H(nh);
         NumMatrix       W(nh);
         NumMatrix       Htr(m);
-        NumMatrix       Wtr(n);        
+        NumMatrix       Wtr(n);
         IloNumArray     kappa(env,kappa_len);
         for (int i=0; i < N; i++) {
             x[i]        = IloNumArray(env,n);
@@ -166,25 +167,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
         for (int i=0; i<n; i++){
             Wtr[i]      = IloNumArray(env,nh);
+            xtr[i]      = IloNumArray(env,N);
             for (int j=0; j<nh; j++){
                 Wtr[i][j] = mxGetPr(W_in)[i*nh+j];
             }
+            for (int j=0; j<N; j++){
+                xtr[i][j] = mxGetPr(x_in)[i+j*n];
+            }
         }          
-        for (int i=0; i < kappa_len; i++)
-            kappa[i] = mxGetPr(kappa_in)[i];        
-        
+        for (int k=0; k < kappa_len; k++)
+            kappa[k] = mxGetPr(kappa_in)[k];
 
-        for (int i=0; i<sigma_len; i++){
+
+        for (int l=0; l<sigma_len; l++){
 
             /* Kernel Matrix Computation */
             NumMatrix  K(N);
-            double *Km = Kernel_Function(x_in,x_in,kernel_,sigma[i]);
+            double *Km = Kernel_Function(x_in,x_in,kernel_,sigma[l]);
             for (int i=0; i < N; i++) {
                 K[i] = IloNumArray(env,N);
                 for (int j=0; j<N; j++)
                     K[i][j] = Km[j+i*N];
             }
-            for (int j=0; j<kappa_len; j++){
+            for (int k=0; k<kappa_len; k++){
 
                 IloModel model(env);
                 /* Define Decision Variables */
@@ -212,12 +217,48 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                     }
                 }   
                 if ( pnorm == 1 ) 
-                    model.add(IloSum(r) <= kappa[j]);
+                    model.add(IloSum(r) <= kappa[k]);
                 if ( pnorm == 2 )
-                    model.add(IloScalProd(r,r) <= kappa[j]*kappa[j]);
+                    model.add(IloScalProd(r,r) <= kappa[k]*kappa[k]);
                 if ( mxIsInf(pnorm) ){
                     for (int i=0; i<N; i++)
-                        model.add(r[i] <= kappa[j]);
+                        model.add(r[i] <= kappa[k]);
+                }
+                /* Constraint enforcing symmetry in Hessian */
+                if (strncmp(kernel_,"poly",4) == 0){
+                    char *temp = kernel_ + 4;
+                    int p;
+                    p = stoi(temp);
+                    for (int j=0; j<n; j++){
+                        for (int jj=j+1; jj<n; jj++){
+                            model.add(IloScalProd(alpha[j],xtr[jj]) == IloScalProd(alpha[jj],xtr[j]));
+                            for (int jjj=0; jjj<n; jjj++){
+                                if (p == 2){
+                                    IloExpr lhs1(env);
+                                    IloExpr rhs1(env);
+                                    for (int i=0; i<N; i++){
+                                        lhs1 += alpha[j][i] * xtr[jj][i] * xtr[jjj][i];
+                                        rhs1 += alpha[jj][i] * xtr[j][i] * xtr[jjj][i];
+                                    }
+                                    model.add(lhs1 == rhs1);
+                                }
+                                else if (p==3){
+                                    for (int jjjj=jjj; jjjj<n; jjjj++){
+                                        IloExpr lhs1(env);
+                                        IloExpr rhs1(env);
+                                        for (int i=0; i<N; i++){
+                                            lhs1 += alpha[j][i] * xtr[jj][i] * xtr[jjj][i] * xtr[jjjj][i];
+                                            rhs1 += alpha[jj][i] * xtr[j][i] * xtr[jjj][i] * xtr[jjjj][i];
+                                        }
+                                        model.add(lhs1 == rhs1);
+                                    }
+                                }
+                                else{
+                                    exit;
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 /* Declare Objective */
@@ -240,14 +281,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 double* out_alpha = mxGetPr(alpha_out);
                 double* out_objective = mxGetPr(objective_out);
                 double* out_diagnosis = mxGetPr(diagnosis_out);
-                *out_diagnosis = cplex.getStatus();
-                mxSetField(optimal, i + j*sigma_len, "diagnosis", diagnosis_out);
+                *out_diagnosis = cplex.getCplexStatus();
+                mxSetField(optimal, l + k*sigma_len, "diagnosis", diagnosis_out);
                 *out_objective = cplex.getObjValue();       
                 for (int i=0; i < N; i++)
                     for (int j=0; j < n; j++)
                         out_alpha[j+i*n] = cplex.getValue(alpha[j][i]);
-                mxSetField(optimal, i + j*sigma_len, "alpha", alpha_out);
-                mxSetField(optimal, i + j*sigma_len, "objective", objective_out);         
+                mxSetField(optimal, l + k*sigma_len, "alpha", alpha_out);
+                mxSetField(optimal, l + k*sigma_len, "objective", objective_out);         
                 
                 /* Close CPLEX and Model & Free Memory! */
                 cplex.end();
