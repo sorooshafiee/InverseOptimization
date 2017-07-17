@@ -222,6 +222,6 @@ end
 fprintf(fileID,'\\end{tabular} \n\\end{table}\n\n\n\\end{document}\n');
 fclose(fileID);
 cd .\tables\
-command = 'pdflatex table1.tex';
+command = 'pdflatex table_1_2.tex';
 [status,cmdout] = system(command);
 cd ..
