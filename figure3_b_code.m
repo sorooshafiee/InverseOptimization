@@ -21,7 +21,7 @@ param.W          = [eye(n);-eye(n)];
 param.H          = [zeros(n,m);zeros(n,m)];
 param.h          = [zeros(n,1);-5*ones(n,1)];
 param.solver     = 'mosek';
-param.alpha      = 0.9;
+param.alpha      = 1;
 param.tol        = 0;
 param.isfeasible = 0;
 param.set_theta  = '[Q_xx >= 0, Q_xs == eye(n,m)]';
