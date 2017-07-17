@@ -131,24 +131,12 @@ ltx_m = latex(sym(all_m(:)'));
 fprintf(fileID,'$n$ & methods & %s \\\\ \\noalign{\\vskip 1pt} \\hline \\noalign{\\vskip 1pt} \n',ltx_m(28:end-18));
 for n = all_n
     ind_n = find(n == all_n);
-    fprintf(fileID,'\\multirow{3}{*}{%d} & VI ',n);
+    fprintf(fileID,'\\multirow{2}{*}{%d} & VI ',n);
     for m = all_m
         ind_m = find(m == all_m);
         tmp = squeeze(Suboptimality(1,ind_n,ind_m,:))';
         str1 = value2latex(mean(tmp));
         if ind(ind_n,ind_m) == 1
-            fprintf(fileID,'& \\cellcolor{gray!25} {$%s$}',str1);
-        else
-            fprintf(fileID,'& $%s $',str1);
-        end
-    end
-    fprintf(fileID,' \\\\ \n');
-    fprintf(fileID,' & SAA ');
-    for m = all_m
-        ind_m = find(m == all_m);
-        tmp = squeeze(Suboptimality(2,ind_n,ind_m,:))';
-        str1 = value2latex(mean(tmp));
-        if ind(ind_n,ind_m) == 2
             fprintf(fileID,'& \\cellcolor{gray!25} {$%s$}',str1);
         else
             fprintf(fileID,'& $%s $',str1);
@@ -182,24 +170,12 @@ ltx_m = latex(sym(all_m(:)'));
 fprintf(fileID,'$n$ & methods & %s \\\\ \\noalign{\\vskip 1pt} \\hline \\noalign{\\vskip 1pt} \n',ltx_m(28:end-18));
 for n = all_n
     ind_n = find(n == all_n);
-    fprintf(fileID,'\\multirow{3}{*}{%d} & VI ',n);
+    fprintf(fileID,'\\multirow{2}{*}{%d} & VI ',n);
     for m = all_m
         ind_m = find(m == all_m);
         tmp = squeeze(Predictability(1,ind_n,ind_m,:))';
         str1 = value2latex(mean(tmp));
         if ind(ind_n,ind_m) == 1
-            fprintf(fileID,'& \\cellcolor{gray!25} {$%s$}',str1);
-        else
-            fprintf(fileID,'& $%s $',str1);
-        end
-    end
-    fprintf(fileID,' \\\\ \n');
-    fprintf(fileID,' & SAA ');
-    for m = all_m
-        ind_m = find(m == all_m);
-        tmp = squeeze(Predictability(2,ind_n,ind_m,:))';
-        str1 = value2latex(mean(tmp));
-        if ind(ind_n,ind_m) == 2
             fprintf(fileID,'& \\cellcolor{gray!25} {$%s$}',str1);
         else
             fprintf(fileID,'& $%s $',str1);
