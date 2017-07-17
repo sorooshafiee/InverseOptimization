@@ -117,7 +117,7 @@ for r = 1 : run_count
     Identifiability(:,:,:,r) = tmp3;
 end
 %% Table in Latex
-fileID = fopen('.\tables\table1.tex','w');
+fileID = fopen('.\tables\table_1_2.tex','w');
 
 tmp_sub = mean(Suboptimality,4);
 [~,ind] = min(tmp_sub,[],1);
