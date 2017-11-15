@@ -131,34 +131,61 @@ for r = 1 : run_count
     Identifiability(:,:,r) = tmp3;
 end
 %%
+shaded = true;
 fig1 = figure;
 set(fig1, 'Units', 'normalized', 'Position', [0.35, 0.25, 0.4, 0.55])
 font_size = 18;
 solve_num = sum(~isnan(squeeze(Suboptimality(1,:,:))),2);
 Suboptimality(1,solve_num <= 50,:) = NaN;
 Predictability(1,solve_num <= 50,:) = NaN;
-semilogx(all_N, [nanmean(Suboptimality(1,:,:),3)', ...
-                 mean(Suboptimality(4,:,:),3)', ...
-                 mean(Suboptimality(3,:,:),3)', ...
-                 mean(Suboptimality(2,:,:),3)'],'linewidth', 4)
+h1 = semilogx(all_N, nanmean(Suboptimality(1,:,:),3), ':', 'linewidth', 4);
+hold on
+h2 = semilogx(all_N, mean(Suboptimality(4,:,:),3), 'linewidth', 4);
+h3 = semilogx(all_N, mean(Suboptimality(2,:,:),3), '-.', 'color', [0.47,0.67,0.19], 'linewidth', 4);
 xlabel('$N$','Interpreter','latex','FontSize',font_size); 
 ylabel('Suboptimality','FontSize',font_size);
-legend('BP', 'DRO', 'ERM', 'VI');
 set(gca, 'FontSize', font_size);
+if shaded
+    prc = 25;
+    alphaa = 0.1;
+    all_N2 = [all_N, flip(all_N)];
+    BP1 = [prctile(Suboptimality(1,:,:),prc,3),flip(prctile(Suboptimality(1,:,:),100-prc,3))];
+    fill(all_N2(~isnan(BP1)), BP1(~isnan(BP1)), ...
+         [0,0.44,0.74], 'LineStyle','none')
+    fill(all_N2, [prctile(Suboptimality(4,:,:),prc,3),flip(prctile(Suboptimality(4,:,:),100-prc,3))], ...
+         [0.85,0.32,0.10],'LineStyle','none')
+    fill(all_N2, [prctile(Suboptimality(2,:,:),prc,3),flip(prctile(Suboptimality(2,:,:),100-prc,3))], ...
+         [0.47,0.67,0.19],'LineStyle','none')
+    alpha(alphaa)
+end
+legend([h1 h2 h3],{'BP','DRO','VI'});
 cd figs
 saveas(gcf,'fig1-b','png')
 cd ..
 
 fig2 = figure;
 set(fig2, 'Units', 'normalized', 'Position', [0.35, 0.25, 0.4, 0.55])
-semilogx(all_N, [nanmean(Predictability(1,:,:),3)', ...
-                 mean(Predictability(4,:,:),3)', ...
-                 mean(Predictability(3,:,:),3)', ...
-                 mean(Predictability(2,:,:),3)'],'linewidth', 4);
+h1 = semilogx(all_N, nanmean(Predictability(1,:,:),3), ':', 'linewidth', 4);
+hold on
+h2 = semilogx(all_N, mean(Predictability(4,:,:),3), 'linewidth', 4);
+h3 = semilogx(all_N, mean(Predictability(2,:,:),3), '-.', 'color', [0.47,0.67,0.19], 'linewidth', 4);
 xlabel('$N$','Interpreter','latex','FontSize',font_size); 
 ylabel('Predictability','FontSize',font_size);
-legend('BP', 'DRO', 'ERM', 'VI');
 set(gca, 'FontSize', font_size);
+if shaded
+    prc = 25;
+    alphaa = 0.1;
+    all_N2 = [all_N, flip(all_N)];
+    BP1 = [prctile(Predictability(1,:,:),prc,3),flip(prctile(Predictability(1,:,:),100-prc,3))];
+    fill(all_N2(~isnan(BP1)), BP1(~isnan(BP1)), ...
+         [0,0.44,0.74], 'LineStyle','none')
+    fill(all_N2, [prctile(Predictability(4,:,:),prc,3),flip(prctile(Predictability(4,:,:),100-prc,3))], ...
+         [0.85,0.32,0.10],'LineStyle','none')
+    fill(all_N2, [prctile(Predictability(2,:,:),prc,3),flip(prctile(Predictability(2,:,:),100-prc,3))], ...
+         [0.47,0.67,0.19],'LineStyle','none')
+    alpha(alphaa)
+end
+legend([h1 h2 h3],{'BP','DRO','VI'});
 cd figs
 saveas(gcf,'fig1-c','png')
 cd ..

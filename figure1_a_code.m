@@ -66,20 +66,40 @@ for r = 1 : run_count
     Predictability(:,r) = tmp_pre;
 end
 %%
+shaded = true;
 fig = figure;
 set(fig, 'Units', 'normalized', 'Position', [0.35, 0.25, 0.4, 0.55])
 font_size = 18;
 
 yyaxis left
-semilogx(epsilon,mean(Suboptimality,2),'linewidth',4,'color',[0, 0.447, 0.741]);
+h1 = semilogx(epsilon,mean(Suboptimality,2),'linewidth',4,'color',[0, 0.447, 0.741]);
 set(gca, 'FontSize', font_size);
 xlabel('$\varepsilon$','Interpreter','latex', 'FontSize',26);
 ylabel('Suboptimality','FontSize',font_size) % left y-axis
 
 yyaxis right
-semilogx(epsilon,mean(Predictability,2),'linewidth',4,'color',[0.85, 0.325, 0.098],'linestyle','-.');
+h2 = semilogx(epsilon,mean(Predictability,2),'linewidth',4,'color',[0.85, 0.325, 0.098], ...
+         'linestyle','-.');
 ylabel('Predictability','FontSize',font_size) % right y-axis
 
+if shaded
+    prc = 25;
+    alphaa = 0.1;
+    yyaxis left
+    hold on
+    epsilon_2 = [epsilon, flip(epsilon)];
+    fill(epsilon_2,[prctile(Suboptimality,prc,2)', flip(prctile(Suboptimality,100-prc,2))'], ...
+         [0, 0.447, 0.741],'LineStyle','none');
+    alpha(alphaa)
+    yyaxis right
+    hold on
+    fill(epsilon_2,[prctile(Predictability,prc,2)', flip(prctile(Predictability,100-prc,2))'], ...
+         [0.85, 0.325, 0.098],'LineStyle','none');
+    alpha(alphaa)
+end
+
+legend([h1 h2],{'Suboptimality','Predictability'});
+
 cd figs
-saveas(fig,'fig1','png')
+saveas(fig,'fig1-a','png')
 cd ..
